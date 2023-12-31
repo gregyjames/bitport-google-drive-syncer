@@ -1,6 +1,5 @@
 using Autofac;
 using BitPortLibrary;
-using BitPortLibrary.Objects.Cloud;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Quartz;

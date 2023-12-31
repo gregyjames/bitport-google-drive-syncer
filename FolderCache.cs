@@ -1,5 +1,3 @@
-using BitPortLibrary.Objects.Cloud;
-
 namespace bitport_google_drive_syncer;
 
 public static class FolderCache

@@ -57,17 +57,34 @@ public static class Drive
         return file.Id;
     }
     
-    public static async Task<string> UploadZipFile(Stream stream, string code, string folderId)
+    public static async Task<string> UploadZipFile(Stream stream, string code, string folderId, IProgress<int> progressCallback)
     {
-        var fileMetadata = new Google.Apis.Drive.v3.Data.File();
-        fileMetadata.Name = $"{code}.zip";
-        fileMetadata.Parents = new List<string>() { folderId };
-        fileMetadata.MimeType = "application/zip";
-        FilesResource.CreateMediaUpload request;
-        request = Service.Files.Create(fileMetadata, stream,"application/zip");
-        request.Fields = "id";
-        await request.UploadAsync();
-        var file = request.ResponseBody;
-        return file.Id;
+        try
+        {
+            MemoryStream ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var length = ms.Length;
+            var fileMetadata = new Google.Apis.Drive.v3.Data.File();
+            fileMetadata.Name = $"{code}.zip";
+            fileMetadata.Parents = new List<string>() { folderId };
+            fileMetadata.MimeType = "application/zip";
+            FilesResource.CreateMediaUpload request;
+            request = Service.Files.Create(fileMetadata, ms, "application/zip");
+            request.Fields = "id";
+            request.ProgressChanged += uploadProgress =>
+            {
+                decimal result = (decimal)uploadProgress.BytesSent / length * 100;
+                var res = Convert.ToInt32(result);
+                progressCallback.Report(res);
+            };
+            await request.UploadAsync();
+            var file = request.ResponseBody;
+            return file.Id;
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return null;
+        }
     }
 }

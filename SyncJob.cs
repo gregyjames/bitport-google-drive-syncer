@@ -16,7 +16,12 @@ public class SyncJob : IJob
             foreach (var folder in newFolders)
             {
                 var message = await ClientBuilder.client.GetFolderZipURL(folder.code);
-                var result = await Drive.UploadZipFile(message, folder.name, FolderCache.id);
+                IProgress<int> progress = new Progress<int>(i =>
+                {
+                    Console.Write($"{i} -> ");
+                });
+                Console.Write("\n");
+                var result = await Drive.UploadZipFile(message, folder.name, FolderCache.id, progress);
                 Console.WriteLine($"Zip file uploaded to Google Drive with ID: ${result}");
             }
             FolderCache.folders.UnionWith(newFolders);
